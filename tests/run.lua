@@ -41,6 +41,7 @@ end
 local context = require("herdr-watch.context")
 local format = require("herdr-watch.format")
 local config = require("herdr-watch.config")
+local cursor = require("herdr-watch.cursor")
 local herdr = require("herdr-watch.herdr")
 local socket = require("herdr-watch.socket")
 local state = require("herdr-watch.state")
@@ -1120,6 +1121,88 @@ test("reads agent output metadata through the socket API", function()
   eq("older\nnewer", read.text)
   eq(42, read.revision)
   eq(true, read.truncated)
+end)
+
+test("session_snapshot sends the socket envelope and unwraps result.snapshot", function()
+  local request
+  local snapshot
+  herdr.session_snapshot({}, {
+    socket_path = "/tmp/herdr.sock",
+    socket_request = function(opts, callback)
+      request = opts
+      callback({ snapshot = { version = "0.8.0", panes = {} } }, nil)
+      return { kill = function() end }
+    end,
+  }, function(value, err)
+    truthy(value, err and err.message)
+    snapshot = value
+  end)
+  eq("session.snapshot", request.method)
+  eq({}, request.params)
+  eq("0.8.0", snapshot.version)
+end)
+
+test("session_snapshot reports an error when the socket path is unavailable", function()
+  local seen_err
+  herdr.session_snapshot({}, { socket_path = "" }, function(value, err)
+    seen_err = err
+  end)
+  eq("socket_unavailable", seen_err.code)
+end)
+
+test("cursor module emits HerdrCursorUpdated only when a pane's tokens change", function()
+  local events = {}
+  local group = vim.api.nvim_create_augroup("HerdrWatchCursorTest", { clear = true })
+  vim.api.nvim_create_autocmd("User", {
+    group = group,
+    pattern = "HerdrCursorUpdated",
+    callback = function(args)
+      events[#events + 1] = args.data
+    end,
+  })
+
+  local snapshots = {
+    {
+      panes = {
+        { pane_id = "w0:p1", agent = "claude", tokens = { file = "a.lua", line = "10" } },
+      },
+    },
+    {
+      panes = {
+        { pane_id = "w0:p1", agent = "claude", tokens = { file = "a.lua", line = "10" } },
+      },
+    },
+    {
+      panes = {
+        { pane_id = "w0:p1", agent = "claude", tokens = { file = "b.lua", line = "3" } },
+      },
+    },
+  }
+  local call = 0
+  cursor.start(config.defaults(), {
+    session_snapshot = function(_, _, callback)
+      call = call + 1
+      callback(snapshots[call], nil)
+    end,
+  })
+  truthy(
+    vim.wait(200, function()
+      return #events >= 1
+    end),
+    "cursor module did not emit an initial update"
+  )
+  eq("a.lua", events[1].file)
+  eq(10, events[1].line)
+
+  cursor.stop()
+  pcall(vim.api.nvim_del_augroup_by_id, group)
+  eq(1, #events)
+end)
+
+test("cursor_dashboard config rejects invalid poll_interval_ms", function()
+  local ok = pcall(config.setup, { cursor_dashboard = { poll_interval_ms = 0 } })
+  eq(false, ok)
+  config.setup({})
 end)
 
 test("normalizes state and returns immutable public snapshots", function()

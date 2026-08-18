@@ -115,6 +115,39 @@ function M.snapshot(config, callback)
   return unwrap(json_command(config, { "api", "snapshot" }))
 end
 
+function M.session_snapshot(config, opts, callback)
+  opts = opts or {}
+  local socket_path = opts.socket_path or vim.env.HERDR_SOCKET_PATH
+  if not callback then
+    return nil, { code = "invalid_call", message = "Herdr session_snapshot requires a callback" }
+  end
+  if not socket_path or socket_path == "" then
+    callback(nil, { code = "socket_unavailable", message = "Herdr socket path is not available" })
+    return nil
+  end
+  local request = opts.socket_request or socket.request
+  return request({
+    path = socket_path,
+    method = "session.snapshot",
+    params = {},
+    timeout_ms = opts.timeout_ms,
+  }, function(result, err)
+    if err then
+      callback(nil, err)
+      return
+    end
+    local snapshot = result and result.snapshot
+    if type(snapshot) ~= "table" then
+      callback(
+        nil,
+        { code = "invalid_response", message = "Herdr session.snapshot response did not contain result.snapshot" }
+      )
+      return
+    end
+    callback(snapshot, nil)
+  end)
+end
+
 function M.get_agent(config, target, callback)
   local function unwrap(decoded, err)
     if not decoded then

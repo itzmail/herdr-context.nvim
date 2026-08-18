@@ -91,6 +91,10 @@ local defaults = {
       disconnected = false,
     },
   },
+  cursor_dashboard = {
+    enabled = false,
+    poll_interval_ms = 1500,
+  },
   agents_view = {
     position = "right",
     width = 44,
@@ -145,6 +149,7 @@ local function validate(opts)
     history = { opts.history, "table" },
     providers = { opts.providers, "table" },
     presence = { opts.presence, "table" },
+    cursor_dashboard = { opts.cursor_dashboard, "table" },
     agents_view = { opts.agents_view, "table" },
     statusline = { opts.statusline, "table" },
     ["presence.enabled"] = { opts.presence.enabled, "boolean" },
@@ -157,6 +162,8 @@ local function validate(opts)
     ["presence.notifications.done"] = { opts.presence.notifications.done, "boolean" },
     ["presence.notifications.blocked"] = { opts.presence.notifications.blocked, "boolean" },
     ["presence.notifications.disconnected"] = { opts.presence.notifications.disconnected, "boolean" },
+    ["cursor_dashboard.enabled"] = { opts.cursor_dashboard.enabled, "boolean" },
+    ["cursor_dashboard.poll_interval_ms"] = { opts.cursor_dashboard.poll_interval_ms, "number" },
     ["agents_view.position"] = { opts.agents_view.position, "string" },
     ["agents_view.width"] = { opts.agents_view.width, "number" },
     ["agents_view.preview_lines"] = { opts.agents_view.preview_lines, "number" },
@@ -264,6 +271,9 @@ local function validate(opts)
     if value <= 0 or value % 1 ~= 0 then
       error("herdr-watch: presence." .. key .. " must be a positive integer")
     end
+  end
+  if opts.cursor_dashboard.poll_interval_ms <= 0 or opts.cursor_dashboard.poll_interval_ms % 1 ~= 0 then
+    error("herdr-watch: cursor_dashboard.poll_interval_ms must be a positive integer")
   end
   if opts.agents_view.width < 20 or opts.agents_view.width % 1 ~= 0 then
     error("herdr-watch: agents_view.width must be an integer of at least 20")

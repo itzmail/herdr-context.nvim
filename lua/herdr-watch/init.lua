@@ -247,6 +247,10 @@ function M.history()
   return require("herdr-watch.ui.history").toggle()
 end
 
+function M.cursor_dashboard()
+  require("herdr-watch.ui.dashboard").toggle()
+end
+
 function M.refresh(callback)
   state.refresh({ force = true }, function(current, err)
     if err then
