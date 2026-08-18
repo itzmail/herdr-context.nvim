@@ -32,6 +32,18 @@ local function on_status_changed(args)
   })
 end
 
+local function on_connection_changed(args)
+  if not config.get().presence.notifications.disconnected then
+    return
+  end
+  local connected = args.data and args.data.connected
+  if connected then
+    vim.notify("Herdr reconnected", vim.log.levels.INFO, { title = "herdr-context.nvim" })
+  else
+    vim.notify("Herdr disconnected; presence data may be stale", vim.log.levels.WARN, { title = "herdr-context.nvim" })
+  end
+end
+
 function M.stop()
   pcall(vim.api.nvim_del_augroup_by_name, group_name)
 end
@@ -46,6 +58,20 @@ function M.setup()
     group = group,
     pattern = "HerdrContextAgentStatusChanged",
     callback = on_status_changed,
+  })
+  vim.api.nvim_create_autocmd("User", {
+    group = group,
+    pattern = "HerdrContextConnected",
+    callback = function()
+      on_connection_changed({ data = { connected = true } })
+    end,
+  })
+  vim.api.nvim_create_autocmd("User", {
+    group = group,
+    pattern = "HerdrContextDisconnected",
+    callback = function()
+      on_connection_changed({ data = { connected = false } })
+    end,
   })
 end
 
