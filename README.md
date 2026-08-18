@@ -1,12 +1,17 @@
-# herdr-context.nvim
+# herdr-watch.nvim
 
 See live [Herdr](https://herdr.dev) agents inside Neovim and stage code context in their prompts without
 submitting it.
 
-`herdr-context.nvim` is one repository with two install surfaces:
+`herdr-watch.nvim` is one repository with two install surfaces:
 
 - a Neovim plugin for collecting, formatting, and staging context;
 - a Herdr companion plugin with a transient popup for pinning the default target agent.
+
+This is a fork of [`makyinmars/herdr-context.nvim`](https://github.com/makyinmars/herdr-context.nvim)
+(MIT licensed). It adds enhanced secret detection (more patterns plus entropy-based scanning), a
+minimum-Herdr-version check surfaced through `:checkhealth`, and opt-in notifications when the Herdr
+presence connection drops or recovers.
 
 ## Requirements
 
@@ -23,7 +28,7 @@ Neovim should normally be running in a Herdr pane so `HERDR_PANE_ID`, `HERDR_TAB
 Install the Herdr side:
 
 ```sh
-herdr plugin install makyinmars/herdr-context.nvim
+herdr plugin install itzmail/herdr-watch.nvim
 ```
 
 Herdr 0.7.5 stores installed and linked plugins globally. If this companion plugin was installed only
@@ -33,15 +38,15 @@ Install the Neovim side with lazy.nvim:
 
 ```lua
 {
-  "makyinmars/herdr-context.nvim",
+  "itzmail/herdr-watch.nvim",
   cond = vim.env.HERDR_ENV == "1",
-  lazy = false, -- keeps :checkhealth herdr-context discoverable before the first mapping
+  lazy = false, -- keeps :checkhealth herdr-watch discoverable before the first mapping
   opts = {},
   keys = {
     {
       "<leader>ac",
       function()
-        require("herdr-context").compose()
+        require("herdr-watch").compose()
       end,
       mode = { "n", "v" },
       desc = "Compose Herdr Context",
@@ -49,7 +54,7 @@ Install the Neovim side with lazy.nvim:
     {
       "<leader>ap",
       function()
-        require("herdr-context").prompt()
+        require("herdr-watch").prompt()
       end,
       mode = { "n", "v" },
       desc = "Prompt Herdr with Code Context",
@@ -57,7 +62,7 @@ Install the Neovim side with lazy.nvim:
     {
       "<leader>ay",
       function()
-        require("herdr-context").reference()
+        require("herdr-watch").reference()
       end,
       mode = { "n", "v" },
       desc = "Send Reference to Herdr Agent",
@@ -65,7 +70,7 @@ Install the Neovim side with lazy.nvim:
     {
       "<leader>aY",
       function()
-        require("herdr-context").send()
+        require("herdr-watch").send()
       end,
       mode = { "n", "v" },
       desc = "Send Context to Herdr Agent",
@@ -73,7 +78,7 @@ Install the Neovim side with lazy.nvim:
     {
       "<leader>ad",
       function()
-        require("herdr-context").diagnostics()
+        require("herdr-watch").diagnostics()
       end,
       mode = { "n", "v" },
       desc = "Send Diagnostics to Herdr Agent",
@@ -81,21 +86,21 @@ Install the Neovim side with lazy.nvim:
     {
       "<leader>at",
       function()
-        require("herdr-context").select_target()
+        require("herdr-watch").select_target()
       end,
       desc = "Select Herdr Agent",
     },
     {
       "<leader>aa",
       function()
-        require("herdr-context").agents()
+        require("herdr-watch").agents()
       end,
       desc = "Toggle Herdr Agents",
     },
     {
       "<leader>ar",
       function()
-        require("herdr-context").refresh()
+        require("herdr-watch").refresh()
       end,
       desc = "Refresh Herdr Agents",
     },
@@ -106,12 +111,12 @@ Install the Neovim side with lazy.nvim:
 For local development, point both systems at the same checkout:
 
 ```sh
-herdr plugin link /path/to/herdr-context.nvim
+herdr plugin link /path/to/herdr-watch.nvim
 ```
 
 ```lua
 {
-  dir = "/path/to/herdr-context.nvim",
+  dir = "/path/to/herdr-watch.nvim",
   cond = vim.env.HERDR_ENV == "1",
   opts = {},
 }
@@ -121,22 +126,22 @@ herdr plugin link /path/to/herdr-context.nvim
 
 | Command | Behavior |
 | --- | --- |
-| `:HerdrContextReference` | Stage `@path#L10-L20` |
-| `:HerdrContextSend` | Stage the reference and selected code |
-| `:HerdrContextDiagnostics` | Stage diagnostics for the current line or selection |
-| `:HerdrContextCompose [preset]` | Collect, preview, and stage a combined context bundle |
-| `:HerdrContextPrompt` | Open directly in the message editor with the current line or Visual selection attached |
-| `:HerdrContextDelegate <kind> [preset]` | Create an agent and delegate a reviewed composer bundle |
-| `:HerdrContextSymbol` | Stage the innermost symbol under the cursor |
-| `:HerdrContextHunk` | Stage the Git hunk under the cursor |
-| `:HerdrContextQuickfix` | Stage the current quickfix list |
-| `:HerdrContextLocationList` | Stage the current window's location list |
-| `:HerdrContextTarget` | Choose or change the destination agent |
-| `:HerdrContextAgents` | Toggle the live agent drawer |
-| `:HerdrContextExplainAgent` | Explain how Herdr detected an agent and assigned its state |
-| `:HerdrContextHistory` | Inspect, clear, or restage session history |
-| `:HerdrContextRefresh` | Force a cached-state refresh |
-| `:checkhealth herdr-context` | Check Neovim, environment, Herdr, agents, and the companion plugin |
+| `:HerdrWatchReference` | Stage `@path#L10-L20` |
+| `:HerdrWatchSend` | Stage the reference and selected code |
+| `:HerdrWatchDiagnostics` | Stage diagnostics for the current line or selection |
+| `:HerdrWatchCompose [preset]` | Collect, preview, and stage a combined context bundle |
+| `:HerdrWatchPrompt` | Open directly in the message editor with the current line or Visual selection attached |
+| `:HerdrWatchDelegate <kind> [preset]` | Create an agent and delegate a reviewed composer bundle |
+| `:HerdrWatchSymbol` | Stage the innermost symbol under the cursor |
+| `:HerdrWatchHunk` | Stage the Git hunk under the cursor |
+| `:HerdrWatchQuickfix` | Stage the current quickfix list |
+| `:HerdrWatchLocationList` | Stage the current window's location list |
+| `:HerdrWatchTarget` | Choose or change the destination agent |
+| `:HerdrWatchAgents` | Toggle the live agent drawer |
+| `:HerdrWatchExplainAgent` | Explain how Herdr detected an agent and assigned its state |
+| `:HerdrWatchHistory` | Inspect, clear, or restage session history |
+| `:HerdrWatchRefresh` | Force a cached-state refresh |
+| `:checkhealth herdr-watch` | Check Neovim, environment, Herdr, agents, and the companion plugin |
 
 The range-aware context commands accept an Ex range. Lua calls made from Visual mode preserve linewise,
 characterwise, reversed, and blockwise selections.
@@ -144,7 +149,7 @@ characterwise, reversed, and blockwise selections.
 ## Configuration
 
 ```lua
-require("herdr-context").setup({
+require("herdr-watch").setup({
   submit = false,
   focus_after_send = false,
   max_payload_bytes = 64 * 1024,
@@ -262,13 +267,13 @@ and polling fallback. Existing v0.1 configurations remain valid.
 Additional transport options are available for unusual agents:
 
 ```lua
-require("herdr-context").setup({
+require("herdr-watch").setup({
   multiline_strategy = "auto", -- "auto", "bracketed_paste", or "context_file"
   bracketed_paste_agents = {
     codex = true,
     claude = true,
   },
-  context_file_dir = nil, -- defaults to stdpath("cache") .. "/herdr-context"
+  context_file_dir = nil, -- defaults to stdpath("cache") .. "/herdr-watch"
   herdr_bin = nil, -- defaults to HERDR_BIN_PATH, then "herdr"
 })
 ```
@@ -290,8 +295,8 @@ before providers begin. Providers collect independently, and one timeout or fail
 others. The polished left panel shows the attached context, source, target, message, warnings, and byte
 budget; the right pane contains the exact Markdown payload that will be staged.
 
-For the fastest code-to-agent flow, select code in Visual mode and run `:HerdrContextPrompt` (or map
-`require("herdr-context").prompt()`). The message editor opens immediately inside Neovim with that exact
+For the fastest code-to-agent flow, select code in Visual mode and run `:HerdrWatchPrompt` (or map
+`require("herdr-watch").prompt()`). The message editor opens immediately inside Neovim with that exact
 selection attached. Write the thought you would otherwise type in the agent, then press `<C-Enter>` to
 send and submit it. `<C-s>` keeps the message and returns to the composer so you can inspect or adjust the
 attached context first. In Normal mode, the same action starts from the current line and discovers the
@@ -301,7 +306,7 @@ Tracking is opt-in for Lua callers. It submits through `agent prompt --wait` and
 until it reaches `idle`, unseen `done`, or `blocked`:
 
 ```lua
-require("herdr-context").prompt({
+require("herdr-watch").prompt({
   wait = true,
   timeout_ms = 120000,
   preview_result = true, -- also open output for idle/done; blocked always opens it
@@ -314,7 +319,7 @@ the agent and opens its output; `idle` and `done` notify completion. A tracking 
 
 ### Delegating to a new agent
 
-`:HerdrContextDelegate codex review` opens the composer with the `review` preset and a new Codex agent
+`:HerdrWatchDelegate codex review` opens the composer with the `review` preset and a new Codex agent
 as its destination. After reviewing the exact bundle and pressing `s` or `S`, choose whether to split
 the current tab, create a tab, or create a workspace, then choose whether to send without waiting or
 wait and preview the result. Herdr creates an unfocused shell pane, starts a uniquely named `reviewer`
@@ -323,7 +328,7 @@ with `agent start`, selects it as the context target, and submits the bundle wit
 Lua callers can bypass either picker and customize startup:
 
 ```lua
-require("herdr-context").delegate({
+require("herdr-watch").delegate({
   kind = "codex",
   preset = "review",
   name = "reviewer", -- receives a numeric suffix when already live
@@ -363,7 +368,7 @@ Composer controls are:
 - `?`: show the key reference;
 - `q` or `<Esc>`: cancel.
 
-Presets can also be selected directly with commands such as `:HerdrContextCompose debug`. Only available
+Presets can also be selected directly with commands such as `:HerdrWatchCompose debug`. Only available
 providers are selected. `i` opens a multiline Markdown message editor; keep it with `<C-s>`, send it with
 `<C-Enter>` (or `<M-Enter>` in terminals that do not distinguish Control-Enter), or cancel with `q` from
 Normal mode. Messages are rendered as a deterministic `## Instructions` section and are included in the
@@ -381,7 +386,7 @@ plugin is loaded and a configured view is open.
 Custom providers use the same timeout, preview, and byte-budget path:
 
 ```lua
-require("herdr-context").register_provider({
+require("herdr-watch").register_provider({
   id = "custom-build",
   name = "Build output",
   priority = 70,
@@ -399,7 +404,7 @@ require("herdr-context").register_provider({
 
 `collect` may return a cancellation function. It must call its callback at most once with either a
 normalized section or an error. Optional integrations should report unavailable state instead of
-throwing; `:checkhealth herdr-context` summarizes the currently usable backends.
+throwing; `:checkhealth herdr-watch` summarizes the currently usable backends.
 
 ## Live presence
 
@@ -414,7 +419,7 @@ The statusline reads only cached Lua state; it never starts a process or perform
 redraw:
 
 ```lua
-require("herdr-context").statusline()
+require("herdr-watch").statusline()
 -- Herdr ▶ ● codex · 3
 ```
 
@@ -425,7 +430,7 @@ For lualine:
   "nvim-lualine/lualine.nvim",
   opts = function(_, opts)
     table.insert(opts.sections.lualine_x, function()
-      return require("herdr-context").statusline()
+      return require("herdr-watch").statusline()
     end)
   end,
 }
@@ -452,7 +457,7 @@ Without a socket, the text-only CLI remains the compatibility fallback. The adja
 `agents_view.preview_width`; `preview_lines` and `deep_preview_lines` bound the two transcript depths.
 Press `r` inside the output pane to refresh it.
 
-`:HerdrContextExplainAgent` resolves a target and runs `herdr agent explain <pane> --json`. The same
+`:HerdrWatchExplainAgent` resolves a target and runs `herdr agent explain <pane> --json`. The same
 view is available with `e` in the drawer. It reports the final state, active and cached manifest
 versions, winning and evaluated rules, visible evidence, lifecycle authority, and fallback or skipped
 reasons. This is Herdr's authoritative detector output; the plugin does not duplicate screen parsing.
@@ -464,7 +469,7 @@ transitions are disabled by default.
 Advanced consumers can read or subscribe to immutable snapshots:
 
 ```lua
-local state = require("herdr-context.state")
+local state = require("herdr-watch.state")
 
 state.get()
 state.agents({ scope = "workspace" })
@@ -473,8 +478,8 @@ state.unsubscribe(subscription)
 state.refresh({ force = true }, function(snapshot, err) end)
 ```
 
-State changes emit `User` events named `HerdrContextUpdated`, `HerdrContextTargetChanged`,
-`HerdrContextAgentStatusChanged`, `HerdrContextConnected`, and `HerdrContextDisconnected`. Relevant
+State changes emit `User` events named `HerdrWatchUpdated`, `HerdrWatchTargetChanged`,
+`HerdrWatchAgentStatusChanged`, `HerdrWatchConnected`, and `HerdrWatchDisconnected`. Relevant
 event details are available through `vim.v.event` and autocmd callback `data`.
 
 Socket presence reads the server version, opens the lifecycle subscription, and takes an authoritative
@@ -509,8 +514,8 @@ The selected pane is still checked against a fresh snapshot before every send. W
 reusing the previous destination. A sole remaining candidate is selected when `auto_select = true`.
 `vim.ui.select` drives the picker, so existing Snacks integrations are honored.
 
-The Herdr companion action `herdr-context.pin-target` on Linux/macOS, or
-`herdr-context.pin-target-windows` on Windows, opens an 80%-wide, 20-row popup picker. The popup is
+The Herdr companion action `herdr-watch.pin-target` on Linux/macOS, or
+`herdr-watch.pin-target-windows` on Windows, opens an 80%-wide, 20-row popup picker. The popup is
 transient: it does not join the tiled layout, appear in agent snapshots, or emit pane lifecycle events,
 and it closes when the picker exits. The Bash picker uses `jq`; the Windows picker uses only the bundled
 Windows PowerShell runtime. It stores one pane ID per workspace in the plugin config directory. Neovim
@@ -563,7 +568,7 @@ Selected content is also checked against `safety.secret_patterns`. The composer 
 requires a second `s` press after review; direct staging commands use an explicit confirmation picker.
 Changing the payload invalidates an earlier confirmation. Safety checks never print the matched secret.
 
-Successful stages are retained in memory up to `history.max_entries`. `:HerdrContextHistory` can inspect
+Successful stages are retained in memory up to `history.max_entries`. `:HerdrWatchHistory` can inspect
 the exact payload, clear the list, or restage an entry. History is never written to disk and disappears
 when Neovim exits.
 

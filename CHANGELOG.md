@@ -1,19 +1,20 @@
 # Changelog
 
-All notable changes to `herdr-context.nvim` are documented here.
+All notable changes to `herdr-watch.nvim` are documented here.
 
 ## Unreleased
 
+- Rename the package from `herdr-context.nvim` to `herdr-watch.nvim` (fork of `makyinmars/herdr-context.nvim`): the `lua/herdr-context` module, `:HerdrContext*` commands, `HerdrContext*` autocmd events, and the `herdr-context` Herdr companion plugin id all become `herdr-watch`/`HerdrWatch`.
 - Add Windows support with a PowerShell companion picker, named-pipe presence checks, drive/UNC-aware path matching and references, exact transport coverage, and Windows CI.
 - Open the companion target picker as a true 80%-wide, 20-row Herdr popup that stays out of layouts, snapshots, and pane lifecycle events.
-- Add `:HerdrContextDelegate <kind> [preset]` to review a composer bundle, create a split/tab/workspace agent, start and prompt it, and optionally wait for and preview its result.
-- Add `:HerdrContextExplainAgent` and drawer `e` to inspect Herdr's authoritative detection rules, evidence, lifecycle authority, fallback reasons, and manifest versions.
+- Add `:HerdrWatchDelegate <kind> [preset]` to review a composer bundle, create a split/tab/workspace agent, start and prompt it, and optionally wait for and preview its result.
+- Add `:HerdrWatchExplainAgent` and drawer `e` to inspect Herdr's authoritative detection rules, evidence, lifecycle authority, fallback reasons, and manifest versions.
 - Rank and scope targets with Herdr worktree provenance, add project scope, and migrate remembered or pinned targets when pane moves change their IDs.
 - Add opt-in `prompt({ wait = true })` lifecycle tracking with completion/blocked handling, optional result previews, and non-cancelling timeout/stall reporting.
 - Apply Herdr socket resource events directly to the presence cache, including `workspace.reordered`, and reserve snapshots for bootstrap, reconnect, explicit refresh, and inconsistency recovery.
 - Add normal and deep socket-backed agent output previews with busy-agent viewport fallback and truncation indicators.
 - Treat Herdr's unseen `done` lifecycle as a first-class state in target ranking, notifications, the picker, drawer, and statusline, and render custom display names and state labels when available.
-- Add `:HerdrContextPrompt` and `prompt()` for a Visual-selection-to-message workflow entirely inside Neovim.
+- Add `:HerdrWatchPrompt` and `prompt()` for a Visual-selection-to-message workflow entirely inside Neovim.
 - Add an explicit `S`/`<C-Enter>` send-now action without changing the safe non-submitting default.
 - Route explicit sends through agent-aware `herdr agent prompt` while retaining raw, non-submitting staging.
 - Refresh the composer and message editor with clearer context attachments, source details, payload sizing, and key hints.
@@ -26,7 +27,7 @@ All notable changes to `herdr-context.nvim` are documented here.
 - Group, filter, and collapse agents in the drawer and show recent output in an adjacent pane.
 - Add configurable sensitive-path exclusions and secret-pattern confirmations.
 - Add bounded, in-memory staging history with payload inspection and restaging.
-- Add `:HerdrContextHistory` and expand UI, safety, preset, and history coverage.
+- Add `:HerdrWatchHistory` and expand UI, safety, preset, and history coverage.
 
 ## 0.3.0 - 2026-07-16
 
@@ -34,7 +35,7 @@ All notable changes to `herdr-context.nvim` are documented here.
 - Add deterministic bundle rendering, provider isolation, exact previews, stale-buffer protection, and byte budgets.
 - Add on-demand recent-output previews to the live agent drawer.
 - Add opt-in notifications for agent transitions to idle or blocked.
-- Add `:HerdrContextLocationList`.
+- Add `:HerdrWatchLocationList`.
 - Add companion picker shell tests and expand the headless Neovim suite.
 
 ## 0.2.0

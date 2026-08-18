@@ -2,11 +2,11 @@ if vim.env.HERDR_LIVE_TEST ~= "1" then
   error("Set HERDR_LIVE_TEST=1 to run the read-only Herdr integration test")
 end
 
-local plugin = require("herdr-context")
+local plugin = require("herdr-watch")
 local config = plugin.setup({ target_scope = "session" })
-local herdr = require("herdr-context.herdr")
-local state = require("herdr-context.state")
-local targets = require("herdr-context.targets")
+local herdr = require("herdr-watch.herdr")
+local state = require("herdr-watch.state")
+local targets = require("herdr-watch.targets")
 
 assert(
   vim.wait(5000, function()
@@ -40,5 +40,5 @@ print(
     #candidates
   )
 )
-require("herdr-context.watch").stop({ silent = true })
+require("herdr-watch.watch").stop({ silent = true })
 vim.cmd("qa!")

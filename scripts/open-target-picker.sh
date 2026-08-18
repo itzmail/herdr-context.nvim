@@ -2,7 +2,7 @@
 set -euo pipefail
 
 herdr="${HERDR_BIN_PATH:-herdr}"
-plugin_id="${HERDR_PLUGIN_ID:-herdr-context}"
+plugin_id="${HERDR_PLUGIN_ID:-herdr-watch}"
 
 args=(plugin pane open --plugin "$plugin_id" --entrypoint target-picker --placement popup --focus)
 if [ -n "${HERDR_PANE_ID:-}" ]; then

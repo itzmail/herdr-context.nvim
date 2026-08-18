@@ -40,7 +40,7 @@ jobs:
       - name: Test Windows Lua paths, named pipes, and transport
         shell: powershell
         run: |
-          $env:XDG_STATE_HOME = Join-Path $env:RUNNER_TEMP "herdr-context-nvim-state"
+          $env:XDG_STATE_HOME = Join-Path $env:RUNNER_TEMP "herdr-watch-nvim-state"
           nvim --headless -u tests/minimal_init.lua -l tests/windows.lua
       - name: Test Windows companion picker
         if: matrix.neovim == 'stable'

@@ -3,11 +3,11 @@ set -euo pipefail
 
 herdr="${HERDR_BIN_PATH:-herdr}"
 workspace_id="${HERDR_WORKSPACE_ID:-}"
-config_dir="${HERDR_PLUGIN_CONFIG_DIR:-${HOME}/.config/herdr/plugins/config/herdr-context}"
+config_dir="${HERDR_PLUGIN_CONFIG_DIR:-${HOME}/.config/herdr/plugins/config/herdr-watch}"
 config_file="${HERDR_CONTEXT_CONFIG:-${config_dir}/targets}"
 
 if ! command -v jq >/dev/null 2>&1; then
-  printf 'herdr-context: jq is required by the popup target picker\n' >&2
+  printf 'herdr-watch: jq is required by the popup target picker\n' >&2
   read -r -p 'Press Enter to close... ' _
   exit 1
 fi
@@ -38,7 +38,7 @@ fi
 
 pane_ids=()
 count=0
-printf '\nPin a default herdr-context target\n\n'
+printf '\nPin a default herdr-watch target\n\n'
 while IFS=$'\t' read -r _rank status agent workspace tab cwd pane_id; do
   count=$((count + 1))
   pane_ids[$count]="$pane_id"

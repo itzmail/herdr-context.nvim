@@ -1,5 +1,5 @@
-id = "herdr-context"
-name = "Herdr Context"
+id = "herdr-watch"
+name = "Herdr Watch"
 version = "0.4.1"
 min_herdr_version = "0.7.5"
 description = "See live Herdr agents and stage structured Neovim context without submitting it"

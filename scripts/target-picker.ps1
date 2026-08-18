@@ -14,9 +14,9 @@ $workspaceId = $env:HERDR_WORKSPACE_ID
 $defaultConfig = if ($env:HERDR_PLUGIN_CONFIG_DIR) {
     $env:HERDR_PLUGIN_CONFIG_DIR
 } elseif ($env:APPDATA) {
-    Join-Path $env:APPDATA "herdr\plugins\config\herdr-context"
+    Join-Path $env:APPDATA "herdr\plugins\config\herdr-watch"
 } else {
-    Join-Path $HOME ".config\herdr\plugins\config\herdr-context"
+    Join-Path $HOME ".config\herdr\plugins\config\herdr-watch"
 }
 $configFile = if ($env:HERDR_CONTEXT_CONFIG) { $env:HERDR_CONTEXT_CONFIG } else { Join-Path $defaultConfig "targets" }
 
@@ -63,7 +63,7 @@ if ($rows.Count -eq 0) {
 }
 
 Write-Host ""
-Write-Host "Pin a default herdr-context target"
+Write-Host "Pin a default herdr-watch target"
 Write-Host ""
 for ($index = 0; $index -lt $rows.Count; $index++) {
     $row = $rows[$index]

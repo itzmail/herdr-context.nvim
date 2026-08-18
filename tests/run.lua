@@ -38,15 +38,15 @@ local function test(name, callback)
   end
 end
 
-local context = require("herdr-context.context")
-local format = require("herdr-context.format")
-local config = require("herdr-context.config")
-local herdr = require("herdr-context.herdr")
-local socket = require("herdr-context.socket")
-local state = require("herdr-context.state")
-local targets = require("herdr-context.targets")
-local transport = require("herdr-context.transport")
-local watch = require("herdr-context.watch")
+local context = require("herdr-watch.context")
+local format = require("herdr-watch.format")
+local config = require("herdr-watch.config")
+local herdr = require("herdr-watch.herdr")
+local socket = require("herdr-watch.socket")
+local state = require("herdr-watch.state")
+local targets = require("herdr-watch.targets")
+local transport = require("herdr-watch.transport")
+local watch = require("herdr-watch.watch")
 local provider_fixtures = dofile(vim.fn.getcwd() .. "/tests/fixtures/provider-inputs.lua")
 
 local function buffer(lines, name, filetype)
@@ -110,9 +110,9 @@ test("captures blockwise selections", function()
 end)
 
 test("resolves non-Git paths relative to the supplied cwd", function()
-  local relative, root = context.resolve_path("/tmp/herdr-context-other/file.lua", "/tmp/herdr-context-cwd")
-  eq("../herdr-context-other/file.lua", relative)
-  eq("/tmp/herdr-context-cwd", root)
+  local relative, root = context.resolve_path("/tmp/herdr-watch-other/file.lua", "/tmp/herdr-watch-cwd")
+  eq("../herdr-watch-other/file.lua", relative)
+  eq("/tmp/herdr-watch-cwd", root)
 end)
 
 test("formats references relative to the Git root", function()
@@ -160,7 +160,7 @@ end)
 
 test("collects and formats diagnostics in the selected range", function()
   local bufnr = buffer({ "one", "two", "three" }, vim.fn.getcwd() .. "/src/index.ts", "typescript")
-  local namespace = vim.api.nvim_create_namespace("herdr-context-test")
+  local namespace = vim.api.nvim_create_namespace("herdr-watch-test")
   vim.diagnostic.set(namespace, bufnr, {
     {
       lnum = 1,
@@ -356,10 +356,10 @@ test("migrates selected and pinned targets after pane moves", function()
   truthy(targets.remember(cfg, { pane_id = "w1:old", agent = "codex", workspace_id = "w1" }))
 
   local changed
-  local group = vim.api.nvim_create_augroup("HerdrContextTargetMigrationTest", { clear = true })
+  local group = vim.api.nvim_create_augroup("HerdrWatchTargetMigrationTest", { clear = true })
   vim.api.nvim_create_autocmd("User", {
     group = group,
-    pattern = "HerdrContextTargetChanged",
+    pattern = "HerdrWatchTargetChanged",
     callback = function(args)
       changed = args.data
     end,
@@ -458,7 +458,7 @@ local function stage_and_wait(cfg, target, payload, opts)
 end
 
 test("passes file references literally for Codex and Claude without submitting", function()
-  local reference = "@lua/plugins/herdr-context.lua#L13-L20"
+  local reference = "@lua/plugins/herdr-watch.lua#L13-L20"
   local log = vim.fn.tempname()
   vim.fn.writefile({}, log)
   vim.env.FAKE_HERDR_LOG = log
@@ -846,7 +846,7 @@ test("decodes structured Herdr startup errors", function()
 end)
 
 test("delegates a composer bundle through placement, launch, prompt, and tracking", function()
-  local delegate = require("herdr-context.delegate")
+  local delegate = require("herdr-watch.delegate")
   local original_snapshot = herdr.snapshot
   local original_create = herdr.create_pane
   local original_start = herdr.start_agent
@@ -934,7 +934,7 @@ test("delegates a composer bundle through placement, launch, prompt, and trackin
 end)
 
 test("reports cancellation and each delegation side-effect failure", function()
-  local delegate = require("herdr-context.delegate")
+  local delegate = require("herdr-watch.delegate")
   local original_snapshot = herdr.snapshot
   local original_create = herdr.create_pane
   local original_start = herdr.start_agent
@@ -1022,9 +1022,9 @@ test("reports cancellation and each delegation side-effect failure", function()
 end)
 
 test("records and previews non-cancelling delegation tracking outcomes", function()
-  local delegate = require("herdr-context.delegate")
-  local history = require("herdr-context.history")
-  local preview = require("herdr-context.ui.preview")
+  local delegate = require("herdr-watch.delegate")
+  local history = require("herdr-watch.history")
+  local preview = require("herdr-watch.ui.preview")
   local original_open = preview.open
   local previewed
   preview.open = function(agent)
@@ -1369,31 +1369,31 @@ test("emits status and target User events with event data", function()
   local target_event
   local connected_event
   local disconnected_event
-  local group = vim.api.nvim_create_augroup("HerdrContextTestEvents", { clear = true })
+  local group = vim.api.nvim_create_augroup("HerdrWatchTestEvents", { clear = true })
   vim.api.nvim_create_autocmd("User", {
     group = group,
-    pattern = "HerdrContextAgentStatusChanged",
+    pattern = "HerdrWatchAgentStatusChanged",
     callback = function(args)
       status_event = args.data
     end,
   })
   vim.api.nvim_create_autocmd("User", {
     group = group,
-    pattern = "HerdrContextConnected",
+    pattern = "HerdrWatchConnected",
     callback = function(args)
       connected_event = args.data
     end,
   })
   vim.api.nvim_create_autocmd("User", {
     group = group,
-    pattern = "HerdrContextDisconnected",
+    pattern = "HerdrWatchDisconnected",
     callback = function(args)
       disconnected_event = args.data
     end,
   })
   vim.api.nvim_create_autocmd("User", {
     group = group,
-    pattern = "HerdrContextTargetChanged",
+    pattern = "HerdrWatchTargetChanged",
     callback = function(args)
       target_event = args.data
     end,
@@ -1417,7 +1417,7 @@ test("emits status and target User events with event data", function()
 end)
 
 test("sends only opted-in idle, done, and blocked notifications", function()
-  local notifications = require("herdr-context.notifications")
+  local notifications = require("herdr-watch.notifications")
   state._reset()
   config.setup({
     presence = {
@@ -1533,7 +1533,7 @@ end)
 
 test("socket client reads NDJSON and suppresses callbacks after shutdown", function()
   local uv = vim.uv or vim.loop
-  local path = "/tmp/herdr-context-test-" .. tostring(uv.os_getpid()) .. ".sock"
+  local path = "/tmp/herdr-watch-test-" .. tostring(uv.os_getpid()) .. ".sock"
   vim.fn.delete(path)
   local messages = {}
   local errors = {}
@@ -1607,7 +1607,7 @@ end)
 
 test("socket request sends an envelope and returns its matching result", function()
   local uv = vim.uv or vim.loop
-  local path = "/tmp/herdr-context-request-" .. tostring(uv.os_getpid()) .. ".sock"
+  local path = "/tmp/herdr-watch-request-" .. tostring(uv.os_getpid()) .. ".sock"
   vim.fn.delete(path)
   local server = uv.new_pipe(false)
   local bound, bind_err = server:bind(path)
@@ -1673,7 +1673,7 @@ test("watcher gates only the Herdr 0.8 workspace reorder event", function()
     HERDR_SOCKET_PATH = vim.env.HERDR_SOCKET_PATH,
   }
   vim.env.HERDR_ENV = "1"
-  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-context-fake.sock"
+  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-watch-fake.sock"
   local writes = {}
   local function fake_socket_new(opts)
     local fake = { opts = opts }
@@ -1714,7 +1714,7 @@ test("watcher buffers events across delayed bootstrap and reconnect snapshots", 
     HERDR_SOCKET_PATH = vim.env.HERDR_SOCKET_PATH,
   }
   vim.env.HERDR_ENV = "1"
-  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-context-delayed.sock"
+  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-watch-delayed.sock"
 
   local raw = {
     version = "0.8.0",
@@ -1828,7 +1828,7 @@ test("watcher applies events directly and snapshots only for recovery", function
     HERDR_PANE_ID = vim.env.HERDR_PANE_ID,
   }
   vim.env.HERDR_ENV = "1"
-  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-context-fake.sock"
+  vim.env.HERDR_SOCKET_PATH = "/tmp/herdr-watch-fake.sock"
   vim.env.HERDR_PANE_ID = "self"
 
   local snapshot_count = 0
@@ -2011,7 +2011,7 @@ end)
 test("renders the statusline entirely from cached state", function()
   local old_pane_id = vim.env.HERDR_PANE_ID
   vim.env.HERDR_PANE_ID = "self"
-  local statusline = require("herdr-context.ui.statusline")
+  local statusline = require("herdr-watch.ui.statusline")
   local cfg = config.setup({ target_scope = "session" })
   local agent = { pane_id = "w0:p1", agent = "codex", agent_status = "idle" }
   local current = {
@@ -2106,11 +2106,11 @@ test("renders the drawer with stable pane mappings and actions", function()
     },
   }
   state._replace(raw, { connected = true, stale = false, mode = "socket" })
-  local drawer = require("herdr-context.ui.agents")
+  local drawer = require("herdr-watch.ui.agents")
   local drawer_buf = drawer.open()
   eq("nofile", vim.bo[drawer_buf].buftype)
   eq("wipe", vim.bo[drawer_buf].bufhidden)
-  eq("herdr-context-agents", vim.bo[drawer_buf].filetype)
+  eq("herdr-watch-agents", vim.bo[drawer_buf].filetype)
   local drawer_text = table.concat(vim.api.nvim_buf_get_lines(drawer_buf, 0, -1, false), "\n")
   contains(drawer_text, "project / api")
   contains(drawer_text, "project / web")
@@ -2146,7 +2146,7 @@ test("renders the drawer with stable pane mappings and actions", function()
     return { kill = function() end }
   end
   drawer.preview()
-  local preview = require("herdr-context.ui.preview")
+  local preview = require("herdr-watch.ui.preview")
   local active_preview = preview._active()
   truthy(active_preview)
   eq("w0:p2", read_request.pane_id)
@@ -2191,11 +2191,11 @@ test("renders the drawer with stable pane mappings and actions", function()
     return { kill = function() end }
   end
   drawer.explain()
-  local explain = require("herdr-context.ui.explain")
+  local explain = require("herdr-watch.ui.explain")
   local active_explain = explain._active()
   truthy(active_explain)
   eq("w0:p2", explain_request)
-  eq("herdr-context-explain", vim.bo[active_explain.bufnr].filetype)
+  eq("herdr-watch-explain", vim.bo[active_explain.bufnr].filetype)
   local explanation_text = table.concat(vim.api.nvim_buf_get_lines(active_explain.bufnr, 0, -1, false), "\n")
   contains(explanation_text, "Final state:")
   contains(explanation_text, "blocked")
@@ -2265,7 +2265,7 @@ end)
 
 test("cancels superseded output previews and ignores stale callbacks", function()
   config.setup({ agents_view = { preview_lines = 12 } })
-  local preview = require("herdr-context.ui.preview")
+  local preview = require("herdr-watch.ui.preview")
   local callbacks = {}
   local killed = {}
   local original_read_agent = herdr.read_agent
@@ -2292,7 +2292,7 @@ end)
 
 test("falls back to live output for busy agents and marks truncation", function()
   config.setup({ agents_view = { preview_lines = 80, deep_preview_lines = 240 } })
-  local preview = require("herdr-context.ui.preview")
+  local preview = require("herdr-watch.ui.preview")
   local sources = {}
   local original_read_agent = herdr.read_agent
   herdr.read_agent = function(_, _, opts, callback)
@@ -2324,7 +2324,7 @@ test("falls back to live output for busy agents and marks truncation", function(
 end)
 
 test("builds deterministic exact bundles with safe fences and deduplication", function()
-  local bundle = require("herdr-context.bundle")
+  local bundle = require("herdr-watch.bundle")
   local built = bundle.build({
     {
       id = "diagnostics",
@@ -2369,7 +2369,7 @@ test("builds deterministic exact bundles with safe fences and deduplication", fu
 end)
 
 test("excludes sensitive paths and detects secret-like content", function()
-  local safety = require("herdr-context.safety")
+  local safety = require("herdr-watch.safety")
   config.setup({})
   local excluded, pattern = safety.excluded_path("config/.env")
   eq(true, excluded)
@@ -2397,8 +2397,8 @@ test("excludes sensitive paths and detects secret-like content", function()
 end)
 
 test("bounds immutable session history and renders it", function()
-  local history = require("herdr-context.history")
-  local history_ui = require("herdr-context.ui.history")
+  local history = require("herdr-watch.history")
+  local history_ui = require("herdr-watch.ui.history")
   config.setup({ history = { enabled = true, max_entries = 2 } })
   history._reset()
   for index = 1, 3 do
@@ -2416,7 +2416,7 @@ test("bounds immutable session history and renders it", function()
   entries[1].kind = "mutated"
   eq("test3", history.get()[1].kind)
   local history_buf = history_ui.open()
-  eq("herdr-context-history", vim.bo[history_buf].filetype)
+  eq("herdr-watch-history", vim.bo[history_buf].filetype)
   local rendered = table.concat(vim.api.nvim_buf_get_lines(history_buf, 0, -1, false), "\n")
   contains(rendered, "test3")
   contains(rendered, "w0:p3")
@@ -2424,7 +2424,7 @@ test("bounds immutable session history and renders it", function()
 end)
 
 test("deduplicates matching quickfix and Trouble items without dropping sections", function()
-  local bundle = require("herdr-context.bundle")
+  local bundle = require("herdr-watch.bundle")
   local item = { path = "src/main.lua", line = 4, column = 2, type = "E", message = "Broken" }
   local built = bundle.build({
     {
@@ -2452,7 +2452,7 @@ test("deduplicates matching quickfix and Trouble items without dropping sections
 end)
 
 test("isolates provider timeouts, cancellation, and repeated callbacks", function()
-  local registry = require("herdr-context.providers")
+  local registry = require("herdr-watch.providers")
   registry._reset()
   local cancelled = 0
   registry.register({
@@ -2496,7 +2496,7 @@ test("isolates provider timeouts, cancellation, and repeated callbacks", functio
 end)
 
 test("selects the innermost deterministic LSP document symbol", function()
-  local symbol = require("herdr-context.providers.symbol")
+  local symbol = require("herdr-watch.providers.symbol")
   local bufnr = buffer({ "outer", "inner", "body", "end", "done" }, vim.fn.getcwd() .. "/src/symbol.lua")
   local request = {
     bufnr = bufnr,
@@ -2542,7 +2542,7 @@ test("selects the innermost deterministic LSP document symbol", function()
 end)
 
 test("renders MiniDiff change, add, and zero-line delete hunks", function()
-  local mini = require("herdr-context.providers.hunk.mini_diff")
+  local mini = require("herdr-watch.providers.hunk.mini_diff")
   local bufnr = buffer({ "one", "new", "three" })
   local request = { bufnr = bufnr }
   local changed = mini.render(request, { ref_text = "one\nold\nthree\n" }, provider_fixtures.mini_diff.change, 1)
@@ -2560,7 +2560,7 @@ test("renders MiniDiff change, add, and zero-line delete hunks", function()
 end)
 
 test("parses and locates saved Git diff hunks", function()
-  local git_hunk = require("herdr-context.providers.hunk.git")
+  local git_hunk = require("herdr-watch.providers.hunk.git")
   local hunks = git_hunk.parse_hunks(table.concat({
     "diff --git a/a.lua b/a.lua",
     "--- a/a.lua",
@@ -2585,7 +2585,7 @@ test("parses and locates saved Git diff hunks", function()
 end)
 
 test("normalizes quickfix lists and reports invalid entries", function()
-  local quickfix = require("herdr-context.providers.quickfix").providers[1]
+  local quickfix = require("herdr-watch.providers.quickfix").providers[1]
   local bufnr = buffer({ "bad" }, vim.fn.getcwd() .. "/src/quickfix.lua")
   vim.fn.setqflist({}, " ", {
     title = "Build errors",
@@ -2609,7 +2609,7 @@ test("normalizes quickfix lists and reports invalid entries", function()
 end)
 
 test("normalizes loaded Trouble views and stays optional when absent", function()
-  local trouble_provider = require("herdr-context.providers.trouble")
+  local trouble_provider = require("herdr-watch.providers.trouble")
   local old_trouble = package.loaded.trouble
   config.setup({ providers = { trouble = { enabled = true, modes = { "diagnostics", "quickfix" } } } })
   package.loaded.trouble = nil
@@ -2643,7 +2643,7 @@ test("opens the prompt editor with an exact Visual selection attached", function
   config.setup({ presence = { enabled = false } })
   local source = buffer({ "local alpha = 1", "local bravo = 2" }, vim.fn.getcwd() .. "/lua/prompt-test.lua")
   vim.api.nvim_set_current_buf(source)
-  local session = require("herdr-context").prompt({
+  local session = require("herdr-watch").prompt({
     bufnr = source,
     winid = vim.api.nvim_get_current_win(),
     selection = { mode = "v", start = { 1, 7 }, finish = { 2, 11 } },
@@ -2654,7 +2654,7 @@ test("opens the prompt editor with an exact Visual selection attached", function
   truthy(session)
   truthy(
     vim.wait(100, function()
-      return require("herdr-context.ui.instruction")._active() ~= nil
+      return require("herdr-watch.ui.instruction")._active() ~= nil
     end),
     "prompt message editor did not open"
   )
@@ -2663,7 +2663,7 @@ test("opens the prompt editor with an exact Visual selection attached", function
   eq(true, session.track)
   eq(120000, session.tracking_timeout_ms)
   eq(true, session.preview_result)
-  require("herdr-context.ui.instruction").close(session)
+  require("herdr-watch.ui.instruction").close(session)
   session:close()
   delete_buffer(source)
 end)
@@ -2672,7 +2672,7 @@ test("opens delegation in the composer with a new-agent destination", function()
   config.setup({ presence = { enabled = false } })
   local source = buffer({ "local answer = 42" }, vim.fn.getcwd() .. "/lua/delegate-test.lua")
   vim.api.nvim_set_current_buf(source)
-  local session = require("herdr-context").delegate({
+  local session = require("herdr-watch").delegate({
     kind = "codex",
     preset = "review",
     placement = "split",
@@ -2687,9 +2687,9 @@ test("opens delegation in the composer with a new-agent destination", function()
 end)
 
 test("marks composer payloads stale and renders exact preview in a native scratch buffer", function()
-  local bundle = require("herdr-context.bundle")
-  local composer = require("herdr-context.composer")
-  local composer_ui = require("herdr-context.ui.composer")
+  local bundle = require("herdr-watch.bundle")
+  local composer = require("herdr-watch.composer")
+  local composer_ui = require("herdr-watch.ui.composer")
   config.setup({ submit = true, presence = { enabled = false } })
   local source = buffer({ "return true" }, vim.fn.getcwd() .. "/lua/composer-test.lua")
   vim.api.nvim_set_current_buf(source)
@@ -2718,15 +2718,15 @@ test("marks composer payloads stale and renders exact preview in a native scratc
   eq("nofile", vim.bo[ui_buf].buftype)
   eq("wipe", vim.bo[ui_buf].bufhidden)
   eq(false, vim.bo[ui_buf].swapfile)
-  eq("herdr-context-composer", vim.bo[ui_buf].filetype)
+  eq("herdr-watch-composer", vim.bo[ui_buf].filetype)
   local active_composer = composer_ui._active()
   truthy(active_composer.list_winid ~= active_composer.preview_winid)
-  eq("herdr-context-preview", vim.bo[active_composer.preview_bufnr].filetype)
+  eq("herdr-watch-preview", vim.bo[active_composer.preview_bufnr].filetype)
   local rendered = table.concat(vim.api.nvim_buf_get_lines(ui_buf, 0, -1, false), "\n")
   local preview_rendered = table.concat(vim.api.nvim_buf_get_lines(active_composer.preview_bufnr, 0, -1, false), "\n")
   contains(preview_rendered, session.bundle.payload)
   contains(rendered, "s stage + submit")
-  local instruction_ui = require("herdr-context.ui.instruction")
+  local instruction_ui = require("herdr-watch.ui.instruction")
   local instruction_buf = instruction_ui.open(session)
   vim.cmd("stopinsert")
   vim.api.nvim_buf_set_lines(instruction_buf, 0, -1, false, { "Keep the public API stable", "Add focused tests" })
@@ -2753,9 +2753,9 @@ test("marks composer payloads stale and renders exact preview in a native scratc
 end)
 
 test("applies presets, requires sensitive-content confirmation, and records successful staging", function()
-  local bundle = require("herdr-context.bundle")
-  local composer = require("herdr-context.composer")
-  local history = require("herdr-context.history")
+  local bundle = require("herdr-watch.bundle")
+  local composer = require("herdr-watch.composer")
+  local history = require("herdr-watch.history")
   config.setup({
     history = { enabled = true, max_entries = 20 },
     composer = { presets = { secure = { "selection" } } },
@@ -2812,7 +2812,7 @@ test("applies presets, requires sensitive-content confirmation, and records succ
 end)
 
 test("applies mode-aware composer defaults and current-line fallback", function()
-  local composer = require("herdr-context.composer")
+  local composer = require("herdr-watch.composer")
   config.setup({})
   local function entries()
     return {
@@ -2871,34 +2871,34 @@ end)
 
 test("registers all user commands", function()
   for _, name in ipairs({
-    "HerdrContextReference",
-    "HerdrContextSend",
-    "HerdrContextDiagnostics",
-    "HerdrContextCompose",
-    "HerdrContextPrompt",
-    "HerdrContextDelegate",
-    "HerdrContextSymbol",
-    "HerdrContextHunk",
-    "HerdrContextQuickfix",
-    "HerdrContextLocationList",
-    "HerdrContextTarget",
-    "HerdrContextAgents",
-    "HerdrContextExplainAgent",
-    "HerdrContextHistory",
-    "HerdrContextRefresh",
+    "HerdrWatchReference",
+    "HerdrWatchSend",
+    "HerdrWatchDiagnostics",
+    "HerdrWatchCompose",
+    "HerdrWatchPrompt",
+    "HerdrWatchDelegate",
+    "HerdrWatchSymbol",
+    "HerdrWatchHunk",
+    "HerdrWatchQuickfix",
+    "HerdrWatchLocationList",
+    "HerdrWatchTarget",
+    "HerdrWatchAgents",
+    "HerdrWatchExplainAgent",
+    "HerdrWatchHistory",
+    "HerdrWatchRefresh",
   }) do
     eq(2, vim.fn.exists(":" .. name), name)
   end
 end)
 
 test("parses the delegate command kind and preset", function()
-  local api = require("herdr-context")
+  local api = require("herdr-watch")
   local original_delegate = api.delegate
   local seen
   api.delegate = function(opts)
     seen = opts
   end
-  vim.cmd("HerdrContextDelegate codex review")
+  vim.cmd("HerdrWatchDelegate codex review")
   api.delegate = original_delegate
   eq("codex", seen.kind)
   eq("review", seen.preset)

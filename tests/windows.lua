@@ -7,10 +7,10 @@ local function eq(expected, actual, message)
   end
 end
 
-local context = require("herdr-context.context")
-local socket = require("herdr-context.socket")
-local targets = require("herdr-context.targets")
-local transport = require("herdr-context.transport")
+local context = require("herdr-watch.context")
+local socket = require("herdr-watch.socket")
+local targets = require("herdr-watch.targets")
+local transport = require("herdr-watch.transport")
 
 eq("src/module.lua", context._relative_path([[C:\Repo]], [[c:\repo\src\module.lua]]), "relative Windows path")
 eq("D:/other/module.lua", context._relative_path([[C:\Repo]], [[D:\other\module.lua]]), "cross-volume path")
@@ -29,7 +29,7 @@ eq(
   context._relative_path([[\\?\UNC\server\share\repo]], [[\\?\unc\SERVER\SHARE\repo\src\module.lua]]),
   "extended UNC relative path"
 )
-eq(nil, context.find_git_root([[D:\herdr-context-path-that-does-not-exist]]), "drive root traversal")
+eq(nil, context.find_git_root([[D:\herdr-watch-path-that-does-not-exist]]), "drive root traversal")
 eq("C:/Users/Ada/context.md", transport.reference_path([[C:\Users\Ada\context.md]]), "reference separators")
 eq([[\\.\pipe\herdr-session]], socket.endpoint("herdr-session"), "named-pipe endpoint")
 
@@ -87,7 +87,7 @@ eq(true, available, probe_err or "named-pipe probe")
 eq([[\\.\pipe\herdr-session]], endpoint, "probed endpoint")
 
 local uv = vim.uv or vim.loop
-local pipe_name = socket.endpoint("herdr-context-test-" .. tostring(uv.os_getpid()))
+local pipe_name = socket.endpoint("herdr-watch-test-" .. tostring(uv.os_getpid()))
 local server = uv.new_pipe(false)
 local bound, bind_err = pcall(server.bind, server, pipe_name)
 eq(true, bound, "named-pipe bind: " .. tostring(bind_err))

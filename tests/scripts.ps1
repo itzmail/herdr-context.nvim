@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $root = Split-Path -Parent $PSScriptRoot
-$temporary = Join-Path ([IO.Path]::GetTempPath()) ("herdr-context-" + [guid]::NewGuid().ToString("N"))
+$temporary = Join-Path ([IO.Path]::GetTempPath()) ("herdr-watch-" + [guid]::NewGuid().ToString("N"))
 [void][IO.Directory]::CreateDirectory($temporary)
 
 function Assert-Equal([string]$Expected, [string]$Actual, [string]$Message) {
