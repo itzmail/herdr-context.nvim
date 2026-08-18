@@ -1485,6 +1485,61 @@ test("sends only opted-in idle, done, and blocked notifications", function()
   eq(vim.log.levels.WARN, messages[3].level)
 end)
 
+test("notifies on disconnect and reconnect only when opted in", function()
+  local notifications = require("herdr-watch.notifications")
+  state._reset()
+  config.setup({
+    presence = {
+      enabled = true,
+      notifications = { disconnected = true },
+    },
+  })
+  notifications.setup()
+  local messages = {}
+  local original_notify = vim.notify
+  vim.notify = function(message, level)
+    messages[#messages + 1] = { message = message, level = level }
+  end
+
+  state._replace({ agents = {} }, { connected = true, mode = "socket" })
+  eq(1, #messages, "initial connection is a connected transition")
+
+  state._set_connection({ connected = false, stale = true, mode = "polling" })
+  eq(2, #messages)
+  contains(messages[2].message, "disconnected")
+  eq(vim.log.levels.WARN, messages[2].level)
+
+  state._set_connection({ connected = true, stale = false, mode = "socket" })
+  vim.notify = original_notify
+  notifications.stop()
+  eq(3, #messages)
+  contains(messages[3].message, "reconnected")
+  eq(vim.log.levels.INFO, messages[3].level)
+end)
+
+test("does not notify on disconnect when opted out", function()
+  local notifications = require("herdr-watch.notifications")
+  state._reset()
+  config.setup({
+    presence = {
+      enabled = true,
+      notifications = { disconnected = false },
+    },
+  })
+  notifications.setup()
+  local messages = {}
+  local original_notify = vim.notify
+  vim.notify = function(message, level)
+    messages[#messages + 1] = { message = message, level = level }
+  end
+
+  state._replace({ agents = {} }, { connected = true, mode = "socket" })
+  state._set_connection({ connected = false, stale = true, mode = "polling" })
+  vim.notify = original_notify
+  notifications.stop()
+  eq(0, #messages)
+end)
+
 test("decodes fragmented and batched socket messages", function()
   local messages = {}
   local errors = {}

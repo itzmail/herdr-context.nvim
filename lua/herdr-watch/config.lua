@@ -88,6 +88,7 @@ local defaults = {
       idle = false,
       done = false,
       blocked = false,
+      disconnected = false,
     },
   },
   agents_view = {
@@ -155,6 +156,7 @@ local function validate(opts)
     ["presence.notifications.idle"] = { opts.presence.notifications.idle, "boolean" },
     ["presence.notifications.done"] = { opts.presence.notifications.done, "boolean" },
     ["presence.notifications.blocked"] = { opts.presence.notifications.blocked, "boolean" },
+    ["presence.notifications.disconnected"] = { opts.presence.notifications.disconnected, "boolean" },
     ["agents_view.position"] = { opts.agents_view.position, "string" },
     ["agents_view.width"] = { opts.agents_view.width, "number" },
     ["agents_view.preview_lines"] = { opts.agents_view.preview_lines, "number" },

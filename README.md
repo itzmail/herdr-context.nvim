@@ -225,6 +225,7 @@ require("herdr-watch").setup({
       idle = false,
       done = false,
       blocked = false,
+      disconnected = false,
     },
   },
 
@@ -464,7 +465,8 @@ reasons. This is Herdr's authoritative detector output; the plugin does not dupl
 
 The `presence.notifications` flags opt into desktop-visible Neovim notifications when an existing
 agent transitions to `idle`, unseen `done`, or `blocked`. Initial snapshots do not notify, and all
-transitions are disabled by default.
+transitions are disabled by default. Setting `disconnected = true` additionally notifies when the
+Herdr connection drops (presence data may be stale) and when it recovers.
 
 Advanced consumers can read or subscribe to immutable snapshots:
 
