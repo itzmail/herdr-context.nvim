@@ -95,10 +95,12 @@ function M.shannon_entropy(str)
 end
 
 local function has_keyword(line, keywords)
-  local lower = line:lower()
-  for _, keyword in ipairs(keywords) do
-    if lower:find(keyword, 1, true) then
-      return true
+  local words = line:gsub("(%u)(%u%l)", "%1 %2"):gsub("(%l)(%u)", "%1 %2"):lower()
+  for word in words:gmatch("%w+") do
+    for _, keyword in ipairs(keywords) do
+      if word == keyword:lower() then
+        return true
+      end
     end
   end
   return false

@@ -720,11 +720,29 @@ end)
 test("treats a Herdr version below the minimum as not meeting it", function()
   eq(false, herdr.version_meets_minimum("0.4.9", "0.5.0"))
   eq(false, herdr.version_meets_minimum("0.5.0", "1.0.0"))
+  eq(false, herdr.version_meets_minimum("0.5.0-rc.1", "0.5.0"))
 end)
 
 test("treats an unparseable Herdr version as unknown rather than failing", function()
   eq(nil, herdr.version_meets_minimum("unknown", "0.5.0"))
   eq(nil, herdr.version_meets_minimum(nil, "0.5.0"))
+  eq(nil, herdr.version_meets_minimum("0.4.9garbage", "0.5.0"))
+end)
+
+test("validates minimum-version and entropy settings during setup", function()
+  local invalid = {
+    { { min_herdr_version = "0.7" }, "min_herdr_version" },
+    { { safety = { entropy_enabled = "yes" } }, "safety.entropy_enabled" },
+    { { safety = { entropy_threshold = 9 } }, "safety.entropy_threshold" },
+    { { safety = { entropy_min_length = 0 } }, "safety.entropy_min_length" },
+    { { safety = { entropy_keywords = { "" } } }, "safety.entropy_keywords" },
+  }
+  for _, case in ipairs(invalid) do
+    local ok, err = pcall(config.setup, case[1])
+    eq(false, ok)
+    contains(tostring(err), case[2])
+  end
+  config.setup({})
 end)
 
 test("reads recent agent output with bounded text arguments", function()
@@ -2424,6 +2442,16 @@ test("detects GitHub PAT, Slack token, and GCP service account key patterns", fu
   })
   eq(1, #gh_warnings)
 
+  local fine_grained_gh_warnings = safety.scan({
+    {
+      id = "a2",
+      title = "GitHub",
+      format = "text",
+      content = "github_pat_11FAKE_" .. string.rep("a1B2c3", 8),
+    },
+  })
+  eq(1, #fine_grained_gh_warnings)
+
   local slack_warnings = safety.scan({
     {
       id = "b",
@@ -2490,6 +2518,26 @@ test("flags high-entropy strings only when a secret keyword is nearby", function
     { id = "i", title = "Low entropy", format = "text", content = "some_credential_note = aaaaaaaaaaaaaaaaaaaaaaaa" },
   })
   eq(0, #keyword_without_high_entropy)
+
+  local unrelated_keyword_substring = safety.scan({
+    {
+      id = "i2",
+      title = "Unrelated",
+      format = "text",
+      content = "monkey aB3$kL9zXq7mVn2Wp5Rt8Yc4Ue1Sh6Jo",
+    },
+  })
+  eq(0, #unrelated_keyword_substring)
+
+  local camel_case_keyword = safety.scan({
+    {
+      id = "i3",
+      title = "Camel case",
+      format = "text",
+      content = "apiCredential = aB3$kL9zXq7mVn2Wp5Rt8Yc4Ue1Sh6Jo",
+    },
+  })
+  eq(1, #camel_case_keyword)
 end)
 
 test("computes Shannon entropy of a string", function()
